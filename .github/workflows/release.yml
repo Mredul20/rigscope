@@ -25,7 +25,7 @@ jobs:
             -ldflags "-s -w -H windowsgui -X main.version=${VERSION}" \
             -o dist/Rigscope.exe .
           cd dist && sha256sum Rigscope.exe > SHA256SUMS.txt && cat SHA256SUMS.txt
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             dist/Rigscope.exe
