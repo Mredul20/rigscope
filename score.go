@@ -53,7 +53,7 @@ var (
 	reRyzen     = regexp.MustCompile(`ryzen [3579] (?:pro )?(\d)(\d)(\d)(\d)([a-z0-9]*)`)
 	reRyzenAI   = regexp.MustCompile(`ryzen ai (?:max\+? |\d+ )?(?:pro )?(?:hx )?(\d)(\d{2})`)
 	reThread    = regexp.MustCompile(`threadripper`)
-	reEPYC      = regexp.MustCompile(`epyc (\d{4})`)
+	reEPYC      = regexp.MustCompile(`epyc ([0-9a-z]{3}\d)\b`)
 )
 
 func cleanName(s string) string {
