@@ -74,7 +74,7 @@ jobs:
           $e = $null
           $null = [System.Management.Automation.Language.Parser]::ParseFile("$PWD/ps/sensors.ps1", [ref]$null, [ref]$e)
           if ($e.Count) { $e | ForEach-Object { Write-Error $_.Message }; exit 1 }
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-runner-report
           path: |
