@@ -37,7 +37,7 @@ func TestCPUTiers(t *testing.T) {
 		{"Intel(R) N100", 4, 4, 2, "yes"},
 		{"Snapdragon(R) X Elite - X1E78100 - Qualcomm(R) Oryon(TM) CPU", 12, 12, 6, "yes"},
 		{"AMD EPYC 7763 64-Core Processor", 2, 4, 2, "unknown"}, // a 4-thread cloud VM slice
-		{"AMD EPYC 9V74 80-Core Processor", 2, 4, 2, "unknown"}, // Azure's custom Zen 4 part
+		{"AMD EPYC 9V74 80-Core Processor", 2, 4, 3, "unknown"}, // Azure's custom Zen 4 part: fast cores
 	}
 	for _, c := range cases {
 		e := estimateCPU(c.name, c.cores, c.threads)
