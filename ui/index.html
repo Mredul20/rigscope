@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rigscope</title>
+<link rel="stylesheet" href="/live.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230E4D45'/%3E%3Crect x='9' y='9' width='14' height='14' rx='2' fill='none' stroke='%23E9C46A' stroke-width='2'/%3E%3Cpath d='M12 5v3M16 5v3M20 5v3M12 24v3M16 24v3M20 24v3M5 12h3M5 16h3M5 20h3M24 12h3M24 16h3M24 20h3' stroke='%23E9C46A' stroke-width='1.6' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='16' r='2.6' fill='%23fff'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#EEF0F3; --surface:#FFFFFF; --sunk:#F5F6F8; --line:#DDE1E7; --line2:#C9CFD8;
+  --ink:#121826; --muted:#536071; --faint:#8A95A4;
+  --pcb:#0E4D45; --pcb2:#13665B; --gold:#C79A2E; --gold-soft:#F4E7C3; --die:#1D2B3A;
+  --good:#1C7C54; --good-bg:#E2F3EA; --warn:#A86200; --warn-bg:#FBEFD9; --bad:#BF3B2C; --bad-bg:#FBE5E2; --info:#3A5BA0; --info-bg:#E6ECF8;
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+  --display:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0D1116; --surface:#151B23; --sunk:#11161D; --line:#252D38; --line2:#323C49;
+    --ink:#E6EAF0; --muted:#9DA8B6; --faint:#6C7887;
+    --pcb:#13665B; --pcb2:#1A7D70; --gold:#E0B44F; --gold-soft:#3A3120; --die:#0A0F15;
+    --good:#4CC38A; --good-bg:#14301F; --warn:#E5A53D; --warn-bg:#34280F; --bad:#F07A6A; --bad-bg:#3A1C18; --info:#88A6EA; --info-bg:#1B2540;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{margin:0;font:14.5px/1.55 var(--font);background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--pcb2);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--pcb2)}
+
+.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1180px;margin:0 auto;padding:14px 28px 0;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.mark{flex:none}
+.title{font:600 18px/1.2 var(--display)}
+.sub{color:var(--muted);font-size:13px}
+.acts{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:1px solid var(--line2);background:var(--surface);cursor:pointer;font-size:13.5px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.btn:disabled{opacity:.5;cursor:default}
+nav.tabs{flex-basis:100%;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;margin-top:4px}
+nav.tabs a{flex:none;padding:9px 12px 10px;color:var(--muted);text-decoration:none;font-size:13.5px;font-weight:500;border-bottom:2px solid transparent}
+nav.tabs a:hover{color:var(--ink)}
+nav.tabs a.on{color:var(--ink);border-bottom-color:var(--pcb2)}
+
+main{max-width:1180px;margin:0 auto;padding:22px 28px 60px}
+section{scroll-margin-top:112px;margin-top:30px}
+section:first-child{margin-top:0}
+h2{font:600 19px/1.3 var(--display);margin:0 0 4px}
+.lead{color:var(--muted);margin:0 0 14px;max-width:80ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.pad{padding:20px 22px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;align-items:start}
+
+/* processor hero */
+.hero{display:grid;grid-template-columns:300px minmax(0,1fr);gap:30px;padding:26px 28px;align-items:center}
+.chip svg{width:100%;height:auto;display:block}
+.chip text{font-family:var(--font)}
+.cpuname{font:600 24px/1.25 var(--display);margin:0;letter-spacing:-.2px}
+.family{color:var(--muted);margin-top:4px}
+.specs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:18px;border-top:1px solid var(--line)}
+.spec{padding:12px 14px 12px 0;border-bottom:1px solid var(--line)}
+.spec .k{font-size:12.5px;color:var(--muted)}
+.spec .v{font:600 17px/1.35 var(--display)}
+.spec .v small{font:400 12.5px var(--font);color:var(--faint);display:block}
+.live{display:flex;align-items:center;gap:12px;margin-top:16px;font-size:13px;color:var(--muted)}
+.bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden;max-width:260px}
+.bar i{display:block;height:100%;background:var(--pcb2);border-radius:4px;transition:width .6s}
+
+/* verdict */
+.verdict{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:28px;padding:22px 26px;margin-top:16px}
+.verdict p{margin:6px 0 0;font:500 16px/1.5 var(--display);max-width:62ch}
+.meters{display:grid;gap:12px;align-content:center}
+.meter{display:grid;grid-template-columns:86px minmax(0,1fr) 86px;gap:12px;align-items:center;font-size:13px}
+.meter .lbl{color:var(--muted)}
+.segs{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.segs i{height:10px;border-radius:3px;background:var(--line)}
+.segs i.on{background:var(--pcb2)}
+.meter .w{font-weight:600}
+
+/* memory */
+.slots{display:grid;gap:10px;margin:14px 0 4px}
+.stick{display:grid;grid-template-columns:minmax(0,1fr);position:relative}
+.stick svg{width:100%;height:auto;display:block}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border-top:1px solid var(--line);margin-top:12px}
+.fact{padding:10px 12px 10px 0;border-bottom:1px solid var(--line)}
+.fact .k{font-size:12.5px;color:var(--muted)}
+.fact .v{font-weight:600}
+.tip{display:flex;gap:10px;margin-top:14px;padding:11px 13px;border-radius:10px;background:var(--gold-soft);font-size:13.5px}
+.tip svg{flex:none;width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+
+/* gpus */
+.gpu{padding:14px 0}
+.gpu+.gpu{border-top:1px solid var(--line)}
+.gname{font:600 16px var(--display)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tag{font-size:12.5px;padding:2px 9px;border-radius:7px;background:var(--sunk);border:1px solid var(--line);color:var(--muted)}
+
+/* storage */
+.disk{padding:14px 0}
+.disk+.disk{border-top:1px solid var(--line)}
+.drow{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.drow .pill{margin-left:auto}
+.dstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.ds{background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+.ds .k{font-size:12px;color:var(--muted)}
+.ds .v{font-weight:600;font-size:15px}
+.vol{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center;padding:7px 0;font-size:13.5px}
+.vol .bar{max-width:none}
+.vol .bar i.hi{background:var(--warn)} .vol .bar i.full{background:var(--bad)}
+.locked{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 13px;border-radius:10px;border:1px dashed var(--line2);color:var(--muted);font-size:13px}
+.locked .btn{margin-left:auto}
+
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:12px;font-size:12.5px;font-weight:600;white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.good,.pill.great{background:var(--good-bg);color:var(--good)}
+.pill.warn,.pill.ok{background:var(--warn-bg);color:var(--warn)}
+.pill.bad,.pill.low,.pill.blocked{background:var(--bad-bg);color:var(--bad)}
+.pill.info{background:var(--info-bg);color:var(--info)}
+.pill.unknown,.pill.none{background:var(--sunk);color:var(--muted);border:1px solid var(--line)}
+
+/* battery */
+.batt{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;align-items:center}
+.batt svg{width:100%;height:auto}
+.big{font:600 44px/1 var(--display);letter-spacing:-1px}
+.big small{font-size:20px;color:var(--muted);letter-spacing:0;margin-left:2px}
+
+/* can it run */
+.runbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.seg{display:inline-flex;padding:3px;border-radius:9px;background:var(--sunk);border:1px solid var(--line)}
+.seg button{all:unset;cursor:pointer;padding:5px 12px;border-radius:6px;font-size:13.5px;color:var(--muted)}
+.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.seg button:focus-visible{outline:2px solid var(--pcb2)}
+.search{height:34px;border-radius:9px;border:1px solid var(--line2);background:var(--surface);padding:0 12px;min-width:220px;flex:1;max-width:320px}
+.counts{margin-left:auto;color:var(--muted);font-size:13px}
+.runlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px}
+.ri{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 2px;border-bottom:1px solid var(--line);align-items:start}
+.ri .n{font-weight:600}
+.ri .c{font-size:12.5px;color:var(--faint)}
+.ri ul{grid-column:1 / -1;margin:2px 0 0;padding-left:18px;color:var(--muted);font-size:13px}
+.ri details{grid-column:1 / -1;font-size:12.5px;color:var(--faint)}
+.ri summary{cursor:pointer;width:max-content}
+.ri details p{margin:4px 0 0}
+
+/* security */
+.secsum{display:flex;align-items:center;gap:18px;margin-bottom:6px}
+.ring{flex:none}
+.ring text{font-family:var(--display)}
+.checks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+.ck{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:13px 0;border-bottom:1px solid var(--line)}
+.ck svg{width:20px;height:20px;margin-top:1px}
+.ck .t{font-weight:600}
+.ck .d{color:var(--muted);font-size:13.5px}
+.ck .f{margin-top:5px;font-size:13px;padding:7px 10px;border-radius:8px;background:var(--sunk);border:1px solid var(--line)}
+.w11{margin-top:18px}
+.w11 h3{margin:0 0 4px;font:600 16px var(--display);display:flex;align-items:center;gap:10px}
+
+.empty{padding:28px;color:var(--muted)}
+.loading{display:grid;place-items:center;min-height:60vh;text-align:center;color:var(--muted)}
+.loading b{display:block;color:var(--ink);font:600 18px var(--display);margin-bottom:4px}
+.scan{width:64px;height:64px;margin:0 auto 16px}
+.scan rect.l{animation:scan 1.6s ease-in-out infinite}
+@keyframes scan{0%{transform:translateY(0)}50%{transform:translateY(26px)}100%{transform:translateY(0)}}
+footer{max-width:1180px;margin:0 auto;padding:0 28px 40px;color:var(--faint);font-size:12.5px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,16px);opacity:0;transition:.2s;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:10px;font-size:13.5px;z-index:40}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (max-width:960px){
+  .hero{grid-template-columns:1fr;justify-items:start}
+  .chip{width:240px}
+  .verdict,.grid2,.runlist,.checks{grid-template-columns:1fr}
+  .dstats{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  .top-in,main,footer{padding-left:16px;padding-right:16px}
+  .acts{margin-left:0}
+  .specs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .batt{grid-template-columns:1fr}
+  .batt svg{max-width:200px}
+  .meter{grid-template-columns:70px minmax(0,1fr)}
+  .meter .w{grid-column:2}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <svg class="mark" width="34" height="34" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0E4D45"/><rect x="9" y="9" width="14" height="14" rx="2" fill="none" stroke="#E9C46A" stroke-width="2"/><path d="M12 5v3M16 5v3M20 5v3M12 24v3M16 24v3M20 24v3M5 12h3M5 16h3M5 20h3M24 12h3M24 16h3M24 20h3" stroke="#E9C46A" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="16" r="2.6" fill="#fff"/></svg>
+    <div><div class="title" id="pcname">Rigscope</div><div class="sub" id="pcsub">Reading this PC…</div></div>
+    <div class="viewsw" role="tablist" aria-label="View"><button data-view="live" class="on" role="tab" aria-selected="true"><span class="pulse" aria-hidden="true"></span>Live</button><button data-view="specs" role="tab" aria-selected="false">Specs and checks</button></div>
+    <div class="acts" id="actions"></div>
+    <nav class="tabs" id="tabs" aria-label="Sections" hidden></nav>
+  </div>
+</header>
+<main id="live" class="view"></main>
+<main id="main" class="view" hidden><div class="loading"><div><svg class="scan" viewBox="0 0 64 64" aria-hidden="true"><rect x="12" y="12" width="40" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="3"/><rect class="l" x="16" y="18" width="32" height="3" rx="1.5" fill="currentColor"/></svg><b>Reading your hardware</b>This takes a few seconds.</div></div></main>
+<footer id="foot"></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+const TOKEN = "__TOKEN__";
+const REPO = "https://github.com/Mredul20/rigscope";
+var R = null; // var, so live.js can read it as window.R
+let runKind = 'game', runFilter = 'all', runQuery = '';
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const I = {
+  copy:'<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>',
+  save:'<svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>',
+  refresh:'<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>',
+  shield:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg>',
+  bulb:'<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16h5v-.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/></svg>',
+};
+const SI = {
+  good:'<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="var(--good)"/><path d="M6 10.3l2.6 2.5L14 7.5" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  warn:'<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="var(--warn)"/><path d="M10 5.5v5.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="14.3" r="1.3" fill="#fff"/></svg>',
+  bad:'<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="var(--bad)"/><path d="M6.8 6.8l6.4 6.4M13.2 6.8l-6.4 6.4" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  info:'<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="var(--info)"/><path d="M10 9v5" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="10" cy="6" r="1.3" fill="#fff"/></svg>',
+  unknown:'<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="none" stroke="var(--faint)" stroke-width="2"/><path d="M8 8a2 2 0 1 1 2.8 1.8c-.5.3-.8.7-.8 1.3v.4" stroke="var(--faint)" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="10" cy="14.2" r="1.1" fill="var(--faint)"/></svg>',
+};
+const TIERS = ['', 'Very basic', 'Basic', 'Entry-level', 'Mid-range', 'Strong', 'High-end'];
+
+async function api(path, body){
+  const r = await fetch(path, {method: body ? 'POST' : 'GET', headers:{'X-Token':TOKEN,'Content-Type':'application/json'}, body: body ? JSON.stringify(body) : undefined});
+  let d = null; try { d = await r.json(); } catch {}
+  if (!r.ok) throw new Error((d && d.error) || 'Request failed (' + r.status + ')');
+  return d;
+}
+let tt; function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(tt); tt = setTimeout(() => t.classList.remove('on'), 3200); }
+function gb(bytes, dec){ const g = bytes / 2**30; return (g >= 100 || !dec ? Math.round(g) : g.toFixed(1).replace(/\.0$/,'')) + ' GB'; }
+function size(bytes){ const t = bytes / 1e12; return t >= 1 ? t.toFixed(t >= 10 ? 0 : 1).replace(/\.0$/,'') + ' TB' : Math.round(bytes / 1e9) + ' GB'; }
+function cache(kb){ if (!kb) return '—'; return kb >= 1024 ? (kb / 1024).toFixed(kb % 1024 ? 1 : 0) + ' MB' : kb + ' KB'; }
+function ghz(mhz){ return (mhz / 1000).toFixed(2) + ' GHz'; }
+function fmtDate(s){ const d = new Date(s); return isNaN(d) ? '' : d.toLocaleDateString(undefined, {day:'numeric', month:'short', year:'numeric'}); }
+function hoursHuman(h){ const d = h / 24; if (d < 60) return Math.round(d) + ' days'; const mo = Math.round(d / 30.44); if (mo < 24) return mo + ' months'; return Math.floor(mo/12) + ' yr' + (mo % 12 ? ' ' + (mo % 12) + ' mo' : ''); }
+const pill = (st, label) => `<span class="pill ${st}"><i></i>${esc(label)}</span>`;
+const segs = t => `<span class="segs" aria-hidden="true">${[1,2,3,4,5,6].map(i => `<i class="${i <= t ? 'on' : ''}"></i>`).join('')}</span>`;
+
+/* ---------- processor chip diagram ---------- */
+function chipSVG(c){
+  const cores = Math.max(1, c.cores || 1), shown = Math.min(cores, 32);
+  const hybrid = c.threads > c.cores && c.threads < c.cores * 2 && /Intel Core (1[2-9]th|Ultra)/.test(c.family);
+  const pCores = hybrid ? c.threads - c.cores : (c.threads >= c.cores * 2 ? cores : 0);
+  const cols = Math.ceil(Math.sqrt(shown * 1.3)), rows = Math.ceil(shown / cols);
+  const S = 300, pad = 46, die = S - pad * 2, l3h = c.l3KB ? 30 : 0;
+  const gx = pad + 14, gy = pad + 14, gw = die - 28, gh = die - 28 - (l3h ? l3h + 8 : 0);
+  const cw = (gw - (cols - 1) * 6) / cols, ch = (gh - (rows - 1) * 6) / rows;
+  let cells = '';
+  for (let i = 0; i < shown; i++) {
+    const x = gx + (i % cols) * (cw + 6), y = gy + Math.floor(i / cols) * (ch + 6);
+    const two = i < pCores;
+    const r = Math.max(2.2, Math.min(cw, ch) * 0.09);
+    cells += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${cw.toFixed(1)}" height="${ch.toFixed(1)}" rx="5" fill="var(--pcb)" stroke="var(--pcb2)"/>`;
+    const dots = two ? [x + cw * 0.36, x + cw * 0.64] : [x + cw / 2];
+    dots.forEach(dx => { cells += `<circle cx="${dx.toFixed(1)}" cy="${(y + ch / 2).toFixed(1)}" r="${r.toFixed(1)}" fill="#E9C46A"/>`; });
+  }
+  let pins = '';
+  const n = 9, step = die / (n + 1);
+  for (let i = 1; i <= n; i++) {
+    const p = pad + i * step;
+    pins += `<rect x="${(p - 3).toFixed(1)}" y="14" width="6" height="26" rx="2"/><rect x="${(p - 3).toFixed(1)}" y="${S - 40}" width="6" height="26" rx="2"/><rect x="14" y="${(p - 3).toFixed(1)}" width="26" height="6" rx="2"/><rect x="${S - 40}" y="${(p - 3).toFixed(1)}" width="26" height="6" rx="2"/>`;
+  }
+  const l3 = l3h ? `<rect x="${gx}" y="${pad + die - 14 - l3h}" width="${gw}" height="${l3h}" rx="5" fill="var(--gold-soft)" stroke="var(--gold)"/><text x="${S/2}" y="${pad + die - 14 - l3h/2 + 4.5}" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">L3 cache ${cache(c.l3KB)}</text>` : '';
+  const more = cores > shown ? `<text x="${S/2}" y="${S - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">showing 32 of ${cores} cores</text>` : '';
+  return `<svg viewBox="0 0 ${S} ${S}" role="img" aria-label="${cores} cores and ${c.threads} threads">
+    <g fill="var(--gold)">${pins}</g>
+    <rect x="${pad - 8}" y="${pad - 8}" width="${die + 16}" height="${die + 16}" rx="16" fill="var(--die)"/>
+    <rect x="${pad}" y="${pad}" width="${die}" height="${die}" rx="10" fill="none" stroke="#2B3B4E"/>
+    ${cells}${l3}${more}</svg>`;
+}
+
+/* ---------- memory stick diagram ---------- */
+function stickSVG(mod, empty){
+  const W = 420, H = 64;
+  if (empty) return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Empty slot"><rect x="1" y="6" width="${W-2}" height="44" rx="6" fill="none" stroke="var(--line2)" stroke-dasharray="6 5"/><text x="${W/2}" y="33" text-anchor="middle" font-size="13" fill="var(--muted)">Empty slot</text></svg>`;
+  let chips = '';
+  for (let i = 0; i < 8; i++) chips += `<rect x="${24 + i * 47}" y="9" width="38" height="17" rx="3" fill="var(--die)"/>`;
+  let teeth = '';
+  for (let x = 14; x < W - 14; x += 7) if (Math.abs(x - W * 0.42) > 6) teeth += `<rect x="${x}" y="47" width="4" height="11" rx="1"/>`;
+  const label = `${gb(mod.capacity)} ${mod.typeName || ''}${mod.configured || mod.speed ? '-' + (mod.configured || mod.speed) : ''}`;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)} in ${esc(mod.slot)}"><rect x="1" y="3" width="${W-2}" height="45" rx="5" fill="var(--pcb)"/>${chips}
+    <g fill="var(--gold)">${teeth}</g><text x="24" y="41" font-size="11.5" font-weight="600" fill="#E9F1EE">${esc(label)}</text>
+    <text x="${W - 22}" y="41" text-anchor="end" font-size="11" fill="#B9D4CD">${esc(mod.maker || '')} ${esc(mod.part || '')}</text></svg>`;
+}
+
+/* ---------- sections ---------- */
+function secProcessor(){
+  const c = R.cpu, cur = c.currentMHz && c.currentMHz !== c.baseMHz;
+  return `<section id="processor"><div class="card hero">
+    <div class="chip">${chipSVG(c)}</div>
+    <div>
+      <h1 class="cpuname">${esc(prettyCPU(c.name) || 'Unknown processor')}</h1>
+      <div class="family">${esc(c.family)}${c.arm ? ', ARM' : ''}</div>
+      <div class="specs">
+        <div class="spec"><div class="k">Base speed</div><div class="v num">${ghz(c.baseMHz)}<small>${c.baseMHz.toLocaleString()} MHz</small></div></div>
+        <div class="spec"><div class="k">Speed right now</div><div class="v num">${cur ? ghz(c.currentMHz) : '—'}<small>${cur ? c.currentMHz.toLocaleString() + ' MHz' + (c.currentMHz > c.baseMHz ? ', boosting' : '') : 'Not reported'}</small></div></div>
+        <div class="spec"><div class="k">Cores and threads</div><div class="v num">${c.cores} cores<small>${c.threads} threads${c.sockets > 1 ? ', ' + c.sockets + ' processors' : ''}</small></div></div>
+        <div class="spec"><div class="k">L1 cache</div><div class="v num">${cache(c.l1KB)}<small>Fastest, per core</small></div></div>
+        <div class="spec"><div class="k">L2 cache</div><div class="v num">${cache(c.l2KB)}<small>Per core or cluster</small></div></div>
+        <div class="spec"><div class="k">L3 cache</div><div class="v num">${cache(c.l3KB)}<small>Shared by all cores</small></div></div>
+        <div class="spec"><div class="k">Architecture</div><div class="v">${esc(c.archName || '—')}<small>${esc(c.socket || '')}</small></div></div>
+        <div class="spec"><div class="k">Virtualization</div><div class="v">${c.virt ? 'On' : 'Off'}<small>${c.virt ? 'Needed for WSL, Docker, emulators' : 'Turn on in BIOS for emulators'}</small></div></div>
+        <div class="spec"><div class="k">Performance class</div><div class="v">${TIERS[c.tier]}<small>Estimated from model and cores</small></div></div>
+      </div>
+      <div class="live"><span>Processor load</span><span class="bar"><i id="cpuload" style="width:0%"></i></span><span class="num" id="cpuloadv">—</span></div>
+    </div></div>
+    <div class="card verdict">
+      <div><h2>What this PC is good for</h2><p>${esc(R.run.summary)}</p></div>
+      <div class="meters">
+        <div class="meter"><span class="lbl">Processor</span>${segs(R.run.cpuTier)}<span class="w">${TIERS[R.run.cpuTier]}</span></div>
+        <div class="meter"><span class="lbl">Graphics</span>${segs(R.run.gpuTier)}<span class="w">${TIERS[R.run.gpuTier] || '—'}</span></div>
+        <div class="meter"><span class="lbl">Memory</span>${segs(ramTier(R.run.ramGB))}<span class="w num">${R.run.ramGB} GB</span></div>
+      </div>
+    </div></section>`;
+}
+function prettyCPU(n){
+  return String(n || '').replace(/\((R|TM|C)\)|®|™/gi, '').replace(/\s+CPU\b/i, '').replace(/\s*@.*$/, '').replace(/\s+\d+-Core Processor$/i, '').replace(/\s+(Six|Eight|Quad|Twelve|Sixteen)-Core Processor$/i, '').replace(/\s+w\/.*$/i, '').replace(/\s+with Radeon.*$/i, '').replace(/\s+/g, ' ').trim();
+}
+const MAKERS = [[/micro-star/i, 'MSI'], [/asustek|^asus/i, 'ASUS'], [/gigabyte/i, 'Gigabyte'], [/^lenovo/i, 'Lenovo'], [/^dell/i, 'Dell'], [/hewlett|^hp\b/i, 'HP'], [/^acer/i, 'Acer'], [/microsoft/i, 'Microsoft'], [/asrock/i, 'ASRock'], [/samsung/i, 'Samsung'], [/huawei/i, 'Huawei'], [/xiaomi/i, 'Xiaomi'], [/^apple/i, 'Apple'], [/^toshiba|dynabook/i, 'Dynabook']];
+function pcName(s){
+  const junk = /to be filled|system product name|default string|not applicable|^none$|^\s*$/i;
+  let maker = s.manufacturer || '';
+  for (const [re, short] of MAKERS) if (re.test(maker)) { maker = short; break; }
+  let model = junk.test(s.model || '') ? '' : s.model;
+  if (maker === 'Lenovo' && s.family && !junk.test(s.family)) model = s.family; // Lenovo's model field is a machine type code
+  if (!model || /^MS-\w+$/i.test(model)) {
+    const board = (s.board || '').replace(s.manufacturer || '', '').replace(/\(.*?\)/g, '').trim();
+    if (board && !junk.test(board)) model = board + ' desktop';
+  }
+  if (!model) return s.computerName || 'This PC';
+  return model.toLowerCase().startsWith(maker.toLowerCase()) || !maker ? model : maker + ' ' + model;
+}
+function ramTier(g){ return g >= 64 ? 6 : g >= 32 ? 5 : g >= 16 ? 4 : g >= 12 ? 3 : g >= 8 ? 2 : 1; }
+
+function secMemory(){
+  const m = R.memory, mods = m.modules, slots = Math.max(m.slots || 0, mods.length);
+  const soldered = mods.length && mods.every(x => x.formFactor === 0 || x.formFactor === 7 || x.formFactor === 1) && !mods.some(x => /dimm/i.test(x.slot));
+  const sticks = mods.map(x => `<div class="stick">${stickSVG(x)}</div>`).join('') + (soldered ? '' : Array.from({length: Math.max(0, slots - mods.length)}, () => `<div class="stick">${stickSVG(null, true)}</div>`).join(''));
+  const empty = slots - mods.length;
+  let tip = '';
+  if (!soldered && empty > 0 && R.run.ramGB < 16) {
+    const one = mods[0];
+    tip = `<div class="tip">${I.bulb}<span>There ${empty === 1 ? 'is 1 empty slot' : 'are ' + empty + ' empty slots'}. Adding a matching ${one ? gb(one.capacity) + ' ' + (one.typeName || '') : ''} stick would give you ${gb(m.total + (one ? one.capacity : 0))}${mods.length === 1 ? ' and turn on dual-channel mode, which speeds up built-in graphics noticeably' : ''}.</span></div>`;
+  } else if (m.channels === 'single' && !soldered) {
+    tip = `<div class="tip">${I.bulb}<span>Memory runs in single-channel mode. A second matching stick would double memory bandwidth.</span></div>`;
+  }
+  return `<div class="card pad"><h2>Memory (RAM)</h2>
+    <div class="slots">${sticks || '<div class="empty">Windows didn’t list the memory modules.</div>'}</div>
+    ${soldered ? '<p class="lead" style="margin:6px 0 0">This memory is soldered to the board, so it can’t be upgraded.</p>' : ''}
+    <div class="facts">
+      <div class="fact"><div class="k">Installed</div><div class="v num">${gb(m.total)}</div></div>
+      <div class="fact"><div class="k">Type and speed</div><div class="v num">${esc(m.typeName || 'Unknown')}${m.speed ? ', ' + m.speed.toLocaleString() + ' MT/s' : ''}</div></div>
+      <div class="fact"><div class="k">Slots used</div><div class="v num">${mods.length} of ${slots || '?'}</div></div>
+      <div class="fact"><div class="k">In use right now</div><div class="v num" id="memuse">—</div></div>
+    </div>${tip}</div>`;
+}
+
+function secGraphics(){
+  const list = R.gpus.map(g => {
+    const vram = g.integrated ? 'Shares system memory' : (g.memory ? gb(g.memory) + ' video memory' : '');
+    const tags = [g.vendor, g.integrated ? 'Built-in' : 'Dedicated card', vram, g.width ? `${g.width} × ${g.height}${g.refresh > 1 ? ' at ' + g.refresh + ' Hz' : ''}` : '', g.driver ? 'Driver ' + g.driver : '', g.driverDate ? fmtDate(g.driverDate) : ''].filter(Boolean);
+    const old = g.driverDate && (Date.now() - new Date(g.driverDate)) / 864e5 > 540;
+    return `<div class="gpu"><div class="drow"><div class="gname">${esc(g.name)}</div>${pill(g.noDriver ? 'bad' : g.tier >= 4 ? 'good' : g.tier >= 3 ? 'info' : 'none', g.noDriver ? 'No driver' : TIERS[g.tier] + (g.estimated ? ' (estimate)' : ''))}</div>
+      <div class="tags">${tags.map(t => `<span class="tag num">${esc(t)}</span>`).join('')}</div>
+      ${g.noDriver ? `<div class="tip">${I.bulb}<span>Windows is using a basic display driver. Install the graphics driver from your PC maker or from ${esc(g.vendor || 'the chip maker')} to get full speed.</span></div>` : old ? `<div class="tip">${I.bulb}<span>This driver is over 18 months old. Newer drivers often fix crashes and speed up games.</span></div>` : ''}</div>`;
+  }).join('');
+  return `<div class="card pad"><h2>Graphics</h2>${list || '<div class="empty">No graphics adapter reported.</div>'}</div>`;
+}
+
+function secStorage(){
+  const vols = R.volumes.map(v => { const used = v.size - v.free, p = v.size ? used / v.size * 100 : 0;
+    return `<div class="vol"><b>${esc(v.letter)}</b><span class="bar"><i class="${p > 95 ? 'full' : p > 85 ? 'hi' : ''}" style="width:${p.toFixed(1)}%"></i></span><span class="num">${gb(v.free, true)} free of ${gb(v.size)}</span></div>`; }).join('');
+  const sysDisk = R.disks.find(d => d.letters.includes('C:'));
+  const disks = R.disks.map(d => {
+    const st = d.state === 'healthy' ? ['good','Healthy'] : d.state === 'warning' ? ['warn','Warning'] : d.state === 'unhealthy' ? ['bad','Failing'] : ['unknown','No health data'];
+    let stats = '';
+    if (d.rel) {
+      const s = [];
+      if (d.kind === 'SSD' && d.wear != null) s.push(['Life left', (100 - d.wear) + '%']);
+      if (d.temp > 0) s.push(['Temperature', d.temp + '°C']);
+      if (d.hours != null) s.push(['Powered on', hoursHuman(d.hours)]);
+      const unc = (d.readErrUnc || 0) + (d.writeErrUnc || 0);
+      if (d.readErrUnc != null || d.writeErrUnc != null) s.push(['Data errors', unc ? unc.toLocaleString() : 'None']);
+      stats = s.length ? `<div class="dstats">${s.map(([k, v]) => `<div class="ds"><div class="k">${k}</div><div class="v num">${esc(v)}</div></div>`).join('')}</div>` : '';
+    }
+    return `<div class="disk"><div class="drow"><div><div class="gname">${esc(d.name || d.model)}</div>
+      <div class="tags"><span class="tag">${esc([d.busName, d.kind].filter(Boolean).join(' '))}</span><span class="tag num">${size(d.size)}</span>${d.letters.map(l => `<span class="tag">${esc(l)}${l === 'C:' ? ' Windows' : ''}</span>`).join('')}${d.kind === 'HDD' && d.spindle > 0 && d.spindle < 100000 ? `<span class="tag num">${d.spindle.toLocaleString()} RPM</span>` : ''}</div></div>${pill(st[0], st[1])}</div>${stats}</div>`;
+  }).join('');
+  const lockedNote = !R.admin && R.disks.some(d => !d.rel) ? `<div class="locked">${I.shield.replace('<svg', '<svg width="18" height="18" style="flex:none;stroke:currentColor;fill:none;stroke-width:1.7"')}<span>SSD life left, temperature and error counts are only shared with administrator apps.</span><button class="btn" data-act="elevate">Run as administrator</button></div>` : '';
+  const hddTip = sysDisk && sysDisk.kind === 'HDD' ? `<div class="tip">${I.bulb}<span>Windows is on a spinning hard drive. Moving it to an SSD is the biggest speed upgrade this PC can get.</span></div>` : '';
+  return `<div class="card pad"><h2>Storage</h2>${disks || '<div class="empty">No drives reported.</div>'}${lockedNote}${hddTip}
+    <div style="margin-top:14px">${vols}</div></div>`;
+}
+
+function secBattery(){
+  const b = R.battery;
+  if (!b.live || !b.live.hasBattery) return `<div class="card pad"><h2>Battery</h2><p class="lead" style="margin:0">No battery. This is a desktop PC.</p></div>`;
+  if (!b.reportOK) return `<div class="card pad"><h2>Battery</h2><p class="lead" style="margin:0">${esc(b.error || 'Windows didn’t report the battery’s capacity.')}</p></div>`;
+  const h = b.full / b.design * 100, shown = Math.min(100, Math.round(h));
+  const tone = h >= 80 ? 'good' : h >= 60 ? 'warn' : 'bad', word = h >= 80 ? 'Good' : h >= 60 ? 'Worn' : h >= 40 ? 'Heavily worn' : 'Replace soon';
+  const fill = Math.max(4, 150 * Math.min(h, 100) / 100);
+  const dur = s => { const hh = Math.floor(s / 3600), mm = Math.round(s % 3600 / 60); return hh ? hh + ' h ' + mm + ' min' : mm + ' min'; };
+  return `<div class="card pad"><h2>Battery</h2><div class="batt">
+    <svg viewBox="0 0 200 100" role="img" aria-label="Battery holds ${shown}% of its original capacity"><defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" stroke="var(--line2)" stroke-width="3"/></pattern></defs>
+      <rect x="4" y="12" width="172" height="76" rx="14" fill="var(--surface)" stroke="var(--ink)" stroke-width="4"/><rect x="179" y="36" width="14" height="28" rx="5" fill="var(--ink)"/>
+      <rect x="14" y="22" width="152" height="56" rx="7" fill="url(#hatch)"/><rect x="14" y="22" width="${fill.toFixed(1)}" height="56" rx="7" fill="var(--${tone})"/></svg>
+    <div><div style="display:flex;align-items:center;gap:12px"><span class="big num">${shown}<small>%</small></span>${pill(tone, word)}</div>
+      <p class="lead" style="margin:6px 0 0">Holds ${(b.full/1000).toFixed(1)} Wh of the ${(b.design/1000).toFixed(1)} Wh it held when new.${b.runFullSec ? ' About ' + dur(b.runFullSec) + ' of use on a full charge' + (b.runDesignSec ? ', down from ' + dur(b.runDesignSec) : '') + '.' : ''}${b.cycles >= 0 ? ' ' + b.cycles + ' charge cycles.' : ''}</p>
+      <p class="lead num" style="margin:4px 0 0" id="battlive"></p></div></div></div>`;
+}
+
+function secRun(){
+  return `<section id="run"><h2>What can this PC run?</h2>
+    <p class="lead">Compared with each publisher's minimum and recommended specs. These are estimates from the hardware, not benchmarks, so treat close calls as close calls.</p>
+    <div class="card pad"><div class="runbar">
+      <div class="seg" role="tablist" aria-label="Games or apps"><button data-kind="game" class="${runKind === 'game' ? 'on' : ''}">Games</button><button data-kind="app" class="${runKind === 'app' ? 'on' : ''}">Apps</button></div>
+      <div class="seg" aria-label="Filter"><button data-filter="all" class="${runFilter === 'all' ? 'on' : ''}">All</button><button data-filter="great" class="${runFilter === 'great' ? 'on' : ''}">Runs well</button><button data-filter="ok" class="${runFilter === 'ok' ? 'on' : ''}">Lower settings</button><button data-filter="no" class="${runFilter === 'no' ? 'on' : ''}">Won't run</button></div>
+      <input class="search" id="runq" placeholder="Search ${runKind === 'game' ? 'games' : 'apps'}" value="${esc(runQuery)}" aria-label="Search">
+      <span class="counts" id="runcount"></span></div>
+      <div class="runlist" id="runlist"></div>
+      <p class="lead" style="margin:14px 0 0;font-size:13px">Missing a game or app? <a href="${REPO}/issues/new?template=catalog_request.md" target="_blank" rel="noopener">Ask for it on GitHub</a>, or add it to catalog/catalog.json yourself.</p></div></section>`;
+}
+function renderRunList(){
+  const el = $('#runlist'); if (!el) return;
+  const q = runQuery.trim().toLowerCase();
+  const all = R.run.items.filter(it => it.kind === runKind);
+  const list = all.filter(it => (runFilter === 'all' || (runFilter === 'no' ? (it.status === 'low' || it.status === 'blocked') : it.status === runFilter)) && (!q || (it.name + ' ' + it.category).toLowerCase().includes(q)));
+  const order = {great:0, ok:1, low:2, blocked:3};
+  list.sort((a, b) => order[a.status] - order[b.status] || a.name.localeCompare(b.name));
+  const n = s => all.filter(it => it.status === s).length;
+  $('#runcount').textContent = `${n('great')} run well, ${n('ok')} on lower settings, ${n('low') + n('blocked')} won't run`;
+  el.innerHTML = list.map(it => `<div class="ri"><div><div class="n">${esc(it.name)}</div><div class="c">${esc(it.category)}${it.storage ? ', ' + it.storage + ' GB' : ''}</div></div>${pill(it.status, it.label)}
+    ${it.reasons.length ? `<ul>${it.reasons.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+    <details><summary>Requirements</summary><p>${esc(it.needs)}</p>${it.note ? `<p>${esc(it.note)}</p>` : ''}</details></div>`).join('') || '<div class="empty">Nothing matches.</div>';
+}
+
+function ring(good, total){
+  const r = 30, c = 2 * Math.PI * r, f = total ? good / total : 0;
+  const col = f >= 0.85 ? 'var(--good)' : f >= 0.6 ? 'var(--warn)' : 'var(--bad)';
+  return `<svg class="ring" width="84" height="84" viewBox="0 0 84 84" role="img" aria-label="${good} of ${total} protections on"><circle cx="42" cy="42" r="${r}" fill="none" stroke="var(--line)" stroke-width="9"/>
+    <circle cx="42" cy="42" r="${r}" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 42 42)"/>
+    <text x="42" y="47" text-anchor="middle" font-size="18" font-weight="600" fill="var(--ink)">${good}/${total}</text></svg>`;
+}
+function secSecurity(){
+  const s = R.security;
+  const bad = s.checks.filter(c => c.status === 'bad').length, warn = s.checks.filter(c => c.status === 'warn').length;
+  const verdict = bad ? `${bad} problem${bad > 1 ? 's' : ''} need${bad > 1 ? '' : 's'} fixing${warn ? ', and ' + warn + ' setting' + (warn > 1 ? 's' : '') + ' could be safer' : ''}.` : warn ? `No serious problems. ${warn} setting${warn > 1 ? 's' : ''} could be safer.` : 'Everything Rigscope checks is turned on.';
+  const order = {bad:0, warn:1, unknown:2, info:3, good:4};
+  const checks = s.checks.slice().sort((a, b) => order[a.status] - order[b.status]);
+  const ck = c => `<div class="ck">${SI[c.status] || SI.unknown}<div><div class="t">${esc(c.title)}</div><div class="d">${esc(c.detail)}</div>${c.fix && c.status !== 'good' ? `<div class="f">${esc(c.fix)}</div>` : ''}</div></div>`;
+  const w11 = s.win11Ok === 'yes' ? ['good', 'Meets the requirements'] : s.win11Ok === 'no' ? ['bad', 'Doesn’t meet the requirements'] : ['unknown', 'Can’t tell'];
+  return `<section id="security"><h2>Is this PC secure?</h2><p class="lead">Rigscope reads these settings. It doesn't change anything.</p>
+    <div class="card pad"><div class="secsum">${ring(s.good, s.graded)}<div><div style="font:600 17px var(--display)">${esc(verdict)}</div><div class="lead" style="margin:2px 0 0">${s.good} of ${s.graded} protections are on.</div></div></div>
+    <div class="checks">${checks.map(ck).join('')}</div>
+    <div class="w11"><h3>Windows 11 hardware check ${pill(w11[0], w11[1])}</h3><p class="lead" style="margin:0 0 4px">${R.os.build >= 22000 ? 'This PC already runs Windows 11. These are Microsoft’s official requirements, which decide whether future versions install smoothly.' : 'Microsoft’s requirements for upgrading from Windows 10.'}</p>
+      <div class="checks">${s.win11.map(ck).join('')}</div></div></div></section>`;
+}
+
+function render(){
+  const s = R.system;
+  $('#pcname').textContent = pcName(s);
+  $('#pcsub').textContent = `${R.os.friendly}${s.computerName ? ', ' + s.computerName : ''}`;
+  $('#actions').innerHTML = `<button class="btn" data-act="copy" title="Copy a summary of this PC">${I.copy}Copy</button><button class="btn" data-act="save" title="Save a full report as a text file">${I.save}Save</button><button class="btn" data-act="refresh" title="Read the PC's details again">${I.refresh}Refresh</button>${R.admin ? '' : `<button class="btn dark" data-act="elevate" title="Restart Rigscope with administrator rights to see drive wear, temperatures and TPM details">${I.shield}Run as admin</button>`}`;
+  const tabs = [['processor','Processor'],['hardware','Memory and graphics'],['storage','Storage and battery'],['run','Can it run?'],['security','Security']];
+  $('#tabs').innerHTML = tabs.map(([id, t]) => `<a href="#${id}" data-tab="${id}">${t}</a>`).join('');
+  $('#main').innerHTML = secProcessor() +
+    `<section id="hardware"><div class="grid2">${secMemory()}${secGraphics()}</div></section>` +
+    `<section id="storage"><div class="grid2">${secStorage()}${secBattery()}</div></section>` +
+    secRun() + secSecurity();
+  $('#foot').innerHTML = `Rigscope ${esc(R.version)}. ${R.admin ? 'Running as administrator.' : 'Running in standard mode.'} Rigscope only reads information. It doesn't change settings and doesn't send anything over the internet. <a href="${REPO}" target="_blank" rel="noopener">Source code on GitHub</a>.${R.errors.length ? ' Some details were missing: ' + esc(R.errors.join('; ')) : ''}`;
+  renderRunList(); spy();
+}
+
+/* ---------- summary export ---------- */
+function summaryText(){
+  const c = R.cpu, m = R.memory, L = [];
+  L.push(`Rigscope report, ${new Date(R.generated).toLocaleString()}`, '');
+  L.push(`PC: ${$('#pcname').textContent}`, `Windows: ${R.os.friendly}`);
+  L.push(`Processor: ${c.name} (${c.cores} cores, ${c.threads} threads, base ${ghz(c.baseMHz)}, L2 ${cache(c.l2KB)}, L3 ${cache(c.l3KB)})`);
+  L.push(`Memory: ${gb(m.total)} ${m.typeName || ''}${m.speed ? ' ' + m.speed + ' MT/s' : ''}, ${m.modules.length} of ${Math.max(m.slots, m.modules.length)} slots used`);
+  R.gpus.forEach(g => L.push(`Graphics: ${g.name}${g.integrated ? ' (built-in)' : g.memory ? ' (' + gb(g.memory) + ')' : ''}`));
+  R.disks.forEach(d => L.push(`Drive ${d.letters.join(' ') || d.id}: ${d.name} (${[d.busName, d.kind].filter(Boolean).join(' ')}, ${size(d.size)}), ${d.state}${d.rel && d.wear != null && d.kind === 'SSD' ? ', ' + (100 - d.wear) + '% life left' : ''}`));
+  const b = R.battery;
+  if (b.live && b.live.hasBattery && b.reportOK) L.push(`Battery: ${Math.round(b.full / b.design * 100)}% health (${(b.full/1000).toFixed(1)} of ${(b.design/1000).toFixed(1)} Wh)`);
+  L.push('', R.run.summary, '', `Security: ${R.security.good} of ${R.security.graded} protections on`);
+  R.security.checks.filter(x => x.status === 'bad' || x.status === 'warn').forEach(x => L.push(`- ${x.title}: ${x.detail}`));
+  L.push('', 'Made with Rigscope: ' + REPO);
+  return L.join('\n');
+}
+function download(name, text, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type}));
+  a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+/* ---------- interactions ---------- */
+document.addEventListener('click', async e => {
+  const k = e.target.closest('[data-kind]'); if (k) { runKind = k.dataset.kind; runQuery = ''; $('#run').outerHTML = secRun(); renderRunList(); return; }
+  const f = e.target.closest('[data-filter]'); if (f) { runFilter = f.dataset.filter; document.querySelectorAll('[data-filter]').forEach(b => b.classList.toggle('on', b === f)); renderRunList(); return; }
+  const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+  const a = b.dataset.act;
+  if (a === 'copy') { try { await navigator.clipboard.writeText(summaryText()); toast('Summary copied'); } catch { toast('Couldn’t copy to the clipboard'); } }
+  if (a === 'save') { const stamp = new Date().toISOString().slice(0, 10); download(`rigscope-${(R.system.computerName || 'pc').toLowerCase()}-${stamp}.txt`, summaryText() + '\n\n--- Full details (JSON) ---\n' + JSON.stringify(R, null, 2), 'text/plain'); toast('Report saved to your Downloads folder'); }
+  if (a === 'refresh') { b.disabled = true; b.lastChild.textContent = 'Checking…'; try { R = await api('/api/report?refresh=1'); render(); toast('Updated'); } catch (err) { toast(err.message); b.disabled = false; } }
+  if (a === 'elevate') { try { await api('/api/elevate', {}); document.body.innerHTML = '<div class="loading"><div><b>Opening as administrator</b>A new Rigscope window is starting. This one will close.</div></div>'; setTimeout(() => window.close(), 1200); } catch (err) { toast(err.message); } }
+});
+document.addEventListener('input', e => { if (e.target.id === 'runq') { runQuery = e.target.value; renderRunList(); } });
+
+let spyObs;
+function spy(){
+  if (spyObs) spyObs.disconnect();
+  spyObs = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) document.querySelectorAll('[data-tab]').forEach(a => a.classList.toggle('on', a.dataset.tab === en.target.id)); }), {rootMargin: '-120px 0px -60% 0px'});
+  document.querySelectorAll('main section').forEach(s => spyObs.observe(s));
+}
+
+/* ---------- switching between the live panel and the specs report ---------- */
+function setView(v){
+  LV.view = v;
+  document.querySelectorAll('[data-view]').forEach(b => { const on = b.dataset.view === v; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+  $('#live').hidden = v !== 'live'; $('#main').hidden = v !== 'specs'; $('#tabs').hidden = v !== 'specs';
+  try { localStorage.setItem('rigscope-view', v); } catch {}
+  window.scrollTo(0, 0);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) setView(b.dataset.view); });
+
+(async function init(){
+  try { new EventSource('/api/events?t=' + TOKEN); } catch {}
+  for (let i = 0; i < 3 && !R; i++) {
+    try { R = await api('/api/report'); }
+    catch (err) { if (i === 2) { $('#main').innerHTML = `<div class="loading"><div><b>Couldn’t read this PC</b>${esc(err.message)}<br><br><button class="btn" onclick="location.reload()">Try again</button></div></div>`; return; } }
+  }
+  render();
+})();
+</script>
+<script src="/live.js"></script>
+</body>
+</html>

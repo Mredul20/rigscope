@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests and catalog checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check formatting
+        run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+      - run: go vet ./...
+      - run: GOOS=windows go vet ./...
+      - run: go test ./...
+      - name: Check the collector script runs in PowerShell with sample data
+        shell: pwsh
+        run: |
+          foreach ($p in 'laptop', 'desktop') {
+            $r = ./scripts/mock-windows.ps1 -Profile $p | ConvertFrom-Json
+            if ($r.errors.Count -gt 0) { throw "$p sample reported errors: $($r.errors -join '; ')" }
+            if (-not $r.cpu.name) { throw "$p sample is missing the processor" }
+          }
+
+  windows:
+    name: Real Windows run
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build a console build
+        run: go build -o rigscope-ci.exe .
+      - name: Read this runner's hardware with the real collector
+        shell: pwsh
+        run: |
+          ./rigscope-ci.exe --json | Out-File -Encoding utf8 report.json
+          $r = Get-Content report.json -Raw | ConvertFrom-Json
+          if (-not $r.cpu.name) { throw 'No processor name in the report' }
+          if ($r.cpu.cores -lt 1) { throw 'No core count in the report' }
+          if ($r.memory.total -le 0) { throw 'No memory size in the report' }
+          Write-Host "Processor: $($r.cpu.name), $($r.cpu.cores) cores, $($r.cpu.threads) threads"
+          Write-Host "Windows: $($r.os.friendly)"
+          Write-Host "Collector notes: $($r.errors -join '; ')"
+      - name: Take a live sample (processor, memory, processes, counters)
+        shell: pwsh
+        run: |
+          ./rigscope-ci.exe --live | Out-File -Encoding utf8 live.json
+          $l = Get-Content live.json -Raw | ConvertFrom-Json
+          if ($l.cpu.cores.Count -lt 1) { throw 'No per-core load in the live sample' }
+          if ($l.mem.total -le 0) { throw 'No memory in the live sample' }
+          if ($l.procs.Count -lt 10) { throw "Only $($l.procs.Count) process groups found" }
+          if (-not $l.disk.ok) { throw 'Disk performance counters did not work' }
+          Write-Host "Load $($l.cpu.total)% over $($l.cpu.cores.Count) threads at $($l.cpu.mhz) MHz, limit $($l.cpu.limit)"
+          Write-Host "Temperature: $($l.temp.cpu) C from $($l.temp.source); zones: $($l.temp.zones.Count)"
+          Write-Host "GPU load $($l.gpu.util)%, disk ok $($l.disk.ok), network ok $($l.net.ok)"
+          Write-Host "Top processes:"; $l.procs | Select-Object -First 8 | ForEach-Object { Write-Host "  $($_.name) ($($_.count)): $($_.cpu)% CPU, $([math]::Round($_.mem / 1MB)) MB" }
+      - name: Check the sensor helper script parses
+        shell: pwsh
+        run: |
+          $e = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile("$PWD/ps/sensors.ps1", [ref]$null, [ref]$e)
+          if ($e.Count) { $e | ForEach-Object { Write-Error $_.Message }; exit 1 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-runner-report
+          path: |
+            report.json
+            live.json

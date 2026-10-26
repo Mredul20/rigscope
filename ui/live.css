@@ -1,0 +1,94 @@
+/* Rigscope live control panel. The board is a physical object, so it keeps its
+   own colors in light and dark mode. */
+:root{
+  --board:#0A2420; --board2:#0D2E29; --trace:#B8892B; --silk:#CFE4DD; --pad:#D4A64A;
+  --cool:#1F8A7A; --ok:#3FB39A; --warmish:#E9C46A; --hot:#F08A4B; --vhot:#E5484D;
+}
+[hidden]{display:none!important}
+.viewsw{display:inline-flex;padding:3px;border-radius:10px;background:var(--sunk);border:1px solid var(--line);margin-left:6px}
+.viewsw button{all:unset;cursor:pointer;padding:5px 13px;border-radius:7px;font-size:13.5px;font-weight:500;color:var(--muted);display:inline-flex;align-items:center;gap:7px}
+.viewsw button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.viewsw button:focus-visible{outline:2px solid var(--pcb2)}
+.viewsw .pulse{width:7px;height:7px;border-radius:50%;background:#2FB872;box-shadow:0 0 0 0 rgba(47,184,114,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,184,114,.55)}70%{box-shadow:0 0 0 7px rgba(47,184,114,0)}100%{box-shadow:0 0 0 0 rgba(47,184,114,0)}}
+
+#live{max-width:1240px;margin:0 auto;padding:20px 28px 60px}
+.board{position:relative;border-radius:18px;overflow:hidden;background:radial-gradient(120% 90% at 50% 45%,var(--board2),var(--board) 70%);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 18px 50px -20px rgba(4,30,26,.55)}
+.board svg{display:block;width:100%;height:auto}
+.board text{font-family:var(--display)}
+.board .silk{font:600 10.5px "Cascadia Mono",Consolas,ui-monospace,monospace;fill:var(--silk);opacity:.55;letter-spacing:.6px}
+.board .lbl{font:500 12.5px var(--font);fill:#9FC3B9}
+.board .val{font:600 15px var(--display);fill:#F2F7F5}
+.board .big{font:600 34px var(--display);fill:#F7FBF9;letter-spacing:-.5px}
+.board .unit{font:500 15px var(--display);fill:#9FC3B9}
+.board .core{transition:fill .6s ease}
+.board .chiplit{transition:fill .5s ease}
+.board .led{transition:opacity .15s}
+.board .tr{fill:none;stroke:var(--trace);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.5}
+.board .draw{stroke-dasharray:var(--len);stroke-dashoffset:var(--len);animation:draw 1.4s cubic-bezier(.6,.05,.3,1) forwards;animation-delay:var(--d)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.board .fadein{opacity:0;animation:fade .7s ease forwards;animation-delay:var(--d)}
+@keyframes fade{to{opacity:1}}
+.board .glow{transition:opacity 1.2s ease}
+.boardnote{position:absolute;left:18px;bottom:12px;font-size:12px;color:#9FC3B9;max-width:60%}
+.boardnote a{color:#E9C46A}
+
+.lgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:16px;margin-top:16px;align-items:start}
+.lcard{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.lcard h2{font:600 17px/1.3 var(--display);margin:0 0 2px;display:flex;align-items:center;gap:10px}
+.lcard .lead{margin:0 0 10px;font-size:13.5px}
+.heat{display:grid;grid-template-columns:230px minmax(0,1fr);gap:18px;align-items:center}
+.gauge text{font-family:var(--display)}
+.heatfacts{display:grid;gap:8px;font-size:13.5px}
+.heatfacts .row{display:flex;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line);padding-bottom:7px}
+.heatfacts .row span:first-child{color:var(--muted)}
+.heatfacts .row b{font-weight:600;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tchip{font-size:12.5px;padding:3px 9px;border-radius:7px;border:1px solid var(--line);background:var(--sunk)}
+.tchip b{font-weight:600}
+.hist{margin-top:12px}
+.hist svg{width:100%;height:auto;display:block}
+.hist text{font:11px var(--font);fill:var(--faint)}
+.srcnote{font-size:12.5px;color:var(--faint);margin-top:10px}
+.srcnote a{color:var(--pcb2)}
+
+.act{display:grid;gap:4px}
+.arow{display:grid;grid-template-columns:110px 128px minmax(0,1fr);gap:14px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+.arow:last-child{border-bottom:0}
+.arow .k{font-weight:600}
+.arow .k small{display:block;font-weight:400;color:var(--faint);font-size:12px}
+.arow .v{font:600 18px var(--display);font-variant-numeric:tabular-nums}
+.arow .v small{display:block;font:400 12px var(--font);color:var(--muted)}
+.spark{width:100%;height:40px;display:block}
+
+.procs{margin-top:16px}
+.ptools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:4px 0 10px}
+.ptools .search{min-width:200px}
+.pmeta{margin-left:auto;color:var(--muted);font-size:13px}
+.ptable{width:100%;border-collapse:collapse;font-size:13.5px}
+.ptable th{font:500 12.5px var(--font);color:var(--muted);text-align:right;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none}
+.ptable th:first-child{text-align:left;padding-left:4px;cursor:default}
+.ptable th.on{color:var(--ink)}
+.ptable th.on::after{content:"";display:inline-block;margin-left:6px;border:4px solid transparent;border-top-color:currentColor;transform:translateY(2px)}
+.ptable td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ptable td:first-child{text-align:left;padding-left:4px;white-space:normal;width:52%}
+.app{display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;align-items:center}
+.mono{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font:700 13px var(--display);color:#fff}
+.app .nm{font-weight:600;display:flex;gap:7px;align-items:baseline;flex-wrap:wrap}
+.app .nm small{font-weight:400;color:var(--faint);font-size:12px}
+.app .nt{color:var(--muted);font-size:12.5px;line-height:1.35}
+.kind{font-size:11.5px;padding:1px 7px;border-radius:6px;background:var(--sunk);border:1px solid var(--line);color:var(--muted);font-weight:500}
+.kind.self{background:var(--gold-soft);border-color:transparent;color:var(--ink)}
+.cell{border-radius:6px}
+.more{display:flex;justify-content:center;margin-top:10px}
+
+@media (max-width:1000px){.lgrid{grid-template-columns:1fr}}
+@media (max-width:640px){
+  #live{padding:14px 12px 40px}
+  .heat{grid-template-columns:1fr}
+  .arow{grid-template-columns:90px 100px minmax(0,1fr)}
+  .ptable td:nth-child(4),.ptable th:nth-child(4),.ptable td:nth-child(5),.ptable th:nth-child(5){display:none}
+  .boardnote{position:static;max-width:none;padding:8px 14px 12px}
+}
+@media (prefers-reduced-motion:reduce){.board .draw{stroke-dashoffset:0;animation:none}.board .fadein{opacity:1;animation:none}.viewsw .pulse{animation:none}}
+.gauge{width:100%;max-width:260px;height:auto;justify-self:center}

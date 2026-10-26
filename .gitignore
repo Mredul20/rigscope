@@ -1,0 +1,10 @@
+# build output
+/dist/
+*.exe
+/rigscope
+
+# editors and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
