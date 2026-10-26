@@ -1,9 +1,10 @@
 name: Release
 
-# Push a tag like v1.0.1 to build Rigscope.exe and publish a GitHub release.
+# Publish a release on GitHub (Releases > Draft a new release, with a tag like
+# v1.2.0) and this builds Rigscope.exe and attaches it with its checksum.
 on:
-  push:
-    tags: ['v*']
+  release:
+    types: [published]
 
 permissions:
   contents: write
@@ -31,4 +32,4 @@ jobs:
           files: |
             dist/Rigscope.exe
             dist/SHA256SUMS.txt
-          generate_release_notes: true
+          tag_name: ${{ github.event.release.tag_name }}
