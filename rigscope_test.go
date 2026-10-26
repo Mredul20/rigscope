@@ -36,6 +36,7 @@ func TestCPUTiers(t *testing.T) {
 		{"Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00GHz", 2, 2, 1, "no"},
 		{"Intel(R) N100", 4, 4, 2, "yes"},
 		{"Snapdragon(R) X Elite - X1E78100 - Qualcomm(R) Oryon(TM) CPU", 12, 12, 6, "yes"},
+		{"AMD EPYC 7763 64-Core Processor", 2, 4, 2, "unknown"}, // a 4-thread cloud VM slice
 	}
 	for _, c := range cases {
 		e := estimateCPU(c.name, c.cores, c.threads)
@@ -228,14 +229,15 @@ func TestWindowsSupportDates(t *testing.T) {
 		edition string
 		want    string
 	}{
-		{26100, "Professional", "bad"},  // 24H2 Home/Pro ended 2026-10-13
-		{26100, "Enterprise", "good"},   // until 2027-10-12
-		{26200, "Core", "good"},         // 25H2
-		{22631, "Enterprise", "warn"},   // 23H2 Enterprise ends 2026-11-10, under 75 days away
-		{19045, "Professional", "warn"}, // Windows 10 22H2: ESU possible
-		{19044, "Professional", "bad"},  // older Windows 10
-		{19044, "EnterpriseS", "good"},  // LTSC 2021 until 2027-01-12
-		{26500, "Core", "unknown"},      // not in the list
+		{26100, "Professional", "bad"},      // 24H2 Home/Pro ended 2026-10-13
+		{26100, "Enterprise", "good"},       // until 2027-10-12
+		{26200, "Core", "good"},             // 25H2
+		{22631, "Enterprise", "warn"},       // 23H2 Enterprise ends 2026-11-10, under 75 days away
+		{19045, "Professional", "warn"},     // Windows 10 22H2: ESU possible
+		{19044, "Professional", "bad"},      // older Windows 10
+		{19044, "EnterpriseS", "good"},      // LTSC 2021 until 2027-01-12
+		{26500, "Core", "unknown"},          // not in the list
+		{26100, "ServerDatacenter", "info"}, // Windows Server has its own schedule
 	}
 	for _, c := range cases {
 		got := windowsSupport(rawOS{Build: c.build, Edition: c.edition}, testNow)

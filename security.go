@@ -37,6 +37,8 @@ func avOutdated(state int64) bool { return state&0x10 != 0 }
 func editionClass(ed string) string {
 	e := strings.ToLower(ed)
 	switch {
+	case strings.Contains(e, "server"):
+		return "server"
 	case strings.Contains(e, "enterprises"), strings.Contains(e, "iotenterprises"):
 		return "ltsc"
 	case strings.Contains(e, "enterprise"), strings.Contains(e, "education"):
@@ -52,6 +54,10 @@ func windowsSupport(o rawOS, now time.Time) Check {
 	switch {
 	case o.Build == 0:
 		c.Detail = "Couldn't read the Windows version."
+		return c
+	case cls == "server":
+		c.Status = "info"
+		c.Detail = "Windows Server follows its own long-term support schedule, separate from Windows 10 and 11. Check Microsoft's lifecycle page for this edition."
 		return c
 	case o.Build < 22000:
 		if cls == "ltsc" {

@@ -149,6 +149,11 @@ var notes = map[string]string{
 var friendly = map[string]string{
 	"system": "System", "memory compression": "Memory Compression", "registry": "Registry",
 	"secure system": "Secure System", "vmmem": "Virtual machines (vmmem)", "vmmemwsl": "WSL and Docker (vmmemwsl)",
+	// core Windows processes: Rigscope can't open these to read their names, so they're listed here
+	"svchost.exe": "Service Host", "csrss.exe": "Client Server Runtime Process", "lsass.exe": "Local Security Authority",
+	"wininit.exe": "Windows Start-Up Application", "services.exe": "Services and Controller App", "smss.exe": "Windows Session Manager",
+	"winlogon.exe": "Windows Logon Application", "fontdrvhost.exe": "Usermode Font Driver Host", "dwm.exe": "Desktop Window Manager",
+	"lsaiso.exe": "Credential Guard",
 }
 
 // groupProcs merges processes with the same program into one row, like Task Manager does.

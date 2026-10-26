@@ -53,6 +53,7 @@ var (
 	reRyzen     = regexp.MustCompile(`ryzen [3579] (?:pro )?(\d)(\d)(\d)(\d)([a-z0-9]*)`)
 	reRyzenAI   = regexp.MustCompile(`ryzen ai (?:max\+? |\d+ )?(?:pro )?(?:hx )?(\d)(\d{2})`)
 	reThread    = regexp.MustCompile(`threadripper`)
+	reEPYC      = regexp.MustCompile(`epyc (\d{4})`)
 )
 
 func cleanName(s string) string {
@@ -222,6 +223,21 @@ func estimateCPU(name string, cores, threads int) CPUEstimate {
 		} else {
 			win11 = "no"
 		}
+	} else if m := reEPYC.FindStringSubmatch(n); m != nil {
+		// EPYC model numbers end in the generation: 7xx1 Zen, 7xx2 Zen 2, 7xx3 Zen 3, 9xx4 Zen 4, 9xx5 Zen 5
+		switch m[1][len(m[1])-1] {
+		case '1':
+			gen = 0.65
+		case '2':
+			gen = 0.85
+		case '3':
+			gen = 0.95
+		case '4':
+			gen = 1.1
+		default:
+			gen = 1.2
+		}
+		family, win11 = "AMD EPYC (server)", "unknown"
 	} else if reThread.MatchString(n) {
 		gen, family, win11 = 1.0, "AMD Ryzen Threadripper", "yes"
 	} else if strings.Contains(n, "athlon") {

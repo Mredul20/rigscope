@@ -7,6 +7,7 @@ func TestGroupProcs(t *testing.T) {
 		{PID: 10, PPID: 1, Name: "chrome.exe", Desc: "Google Chrome", CPU: 3, Mem: 100, Windowed: true},
 		{PID: 11, PPID: 10, Name: "chrome.exe", Desc: "Google Chrome", CPU: 2, Mem: 50},
 		{PID: 4, Name: "System", CPU: 1, System: true},
+		{PID: 5, Name: "svchost.exe", CPU: 0.1, System: true},
 		{PID: 20, PPID: 1, Name: "MsMpEng.exe", Desc: "Antimalware Service Executable", CPU: 7, Mem: 30},
 		{PID: 30, PPID: 1, Name: "rigscope.exe", CPU: 0.4, Mem: 20},
 		{PID: 31, PPID: 30, Name: "msedge.exe", CPU: 0.6, Mem: 80},
@@ -33,6 +34,9 @@ func TestGroupProcs(t *testing.T) {
 	}
 	if s := byKey["system"]; s.Kind != "windows" || s.Name != "System" || s.Note == "" {
 		t.Errorf("system: %+v", s)
+	}
+	if sv := byKey["svchost.exe"]; sv.Name != "Service Host" {
+		t.Errorf("svchost should get a friendly name: %+v", sv)
 	}
 	if g[0].Key != "msmpeng.exe" {
 		t.Errorf("busiest first, got %s", g[0].Key)
