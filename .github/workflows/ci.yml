@@ -13,10 +13,11 @@ jobs:
     name: Tests and catalog checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+          cache: false # no third-party dependencies, so nothing to cache
       - name: Check formatting
         run: test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
       - run: go vet ./...
@@ -35,10 +36,11 @@ jobs:
     name: Real Windows run
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
+          cache: false # no third-party dependencies, so nothing to cache
       - name: Build a console build
         run: go build -o rigscope-ci.exe .
       - name: Read this runner's hardware with the real collector
@@ -49,9 +51,11 @@ jobs:
           if (-not $r.cpu.name) { throw 'No processor name in the report' }
           if ($r.cpu.cores -lt 1) { throw 'No core count in the report' }
           if ($r.memory.total -le 0) { throw 'No memory size in the report' }
-          Write-Host "Processor: $($r.cpu.name), $($r.cpu.cores) cores, $($r.cpu.threads) threads"
-          Write-Host "Windows: $($r.os.friendly)"
-          Write-Host "Collector notes: $($r.errors -join '; ')"
+          # annotations show on the run's summary page
+          Write-Host "::notice title=Processor::$($r.cpu.name), $($r.cpu.cores) cores, $($r.cpu.threads) threads, base $($r.cpu.baseMHz) MHz, L2 $($r.cpu.l2KB) KB, L3 $($r.cpu.l3KB) KB, score $($r.cpu.score)"
+          Write-Host "::notice title=Windows::$($r.os.friendly), memory $([math]::Round($r.memory.total / 1GB)) GB, graphics: $(($r.gpus | ForEach-Object { $_.name }) -join ', '), drives: $(($r.disks | ForEach-Object { $_.name + ' ' + $_.kind }) -join ', ')"
+          Write-Host "::notice title=Security checks::$(($r.security.checks | ForEach-Object { $_.id + '=' + $_.status }) -join ', ')"
+          Write-Host "::notice title=Collector notes::$(if ($r.errors.Count) { $r.errors -join '; ' } else { 'none' })"
       - name: Take a live sample (processor, memory, processes, counters)
         shell: pwsh
         run: |
@@ -61,17 +65,16 @@ jobs:
           if ($l.mem.total -le 0) { throw 'No memory in the live sample' }
           if ($l.procs.Count -lt 10) { throw "Only $($l.procs.Count) process groups found" }
           if (-not $l.disk.ok) { throw 'Disk performance counters did not work' }
-          Write-Host "Load $($l.cpu.total)% over $($l.cpu.cores.Count) threads at $($l.cpu.mhz) MHz, limit $($l.cpu.limit)"
-          Write-Host "Temperature: $($l.temp.cpu) C from $($l.temp.source); zones: $($l.temp.zones.Count)"
-          Write-Host "GPU load $($l.gpu.util)%, disk ok $($l.disk.ok), network ok $($l.net.ok)"
-          Write-Host "Top processes:"; $l.procs | Select-Object -First 8 | ForEach-Object { Write-Host "  $($_.name) ($($_.count)): $($_.cpu)% CPU, $([math]::Round($_.mem / 1MB)) MB" }
+          Write-Host "::notice title=Live sample::Load $($l.cpu.total)% over $($l.cpu.cores.Count) threads at $($l.cpu.mhz) MHz (base $($l.cpu.baseMhz)), limit $($l.cpu.limit), memory $([math]::Round($l.mem.used / 1GB, 1)) GB used, disk $($l.disk.in)/$($l.disk.out) B/s, network $($l.net.in)/$($l.net.out) B/s, GPU $($l.gpu.util)%"
+          Write-Host "::notice title=Temperature::$($l.temp.cpu) C from $($l.temp.source); zones: $(($l.temp.zones | ForEach-Object { $_.name + '=' + $_.value }) -join ', ')"
+          Write-Host "::notice title=Top processes::$(($l.procs | Select-Object -First 10 | ForEach-Object { $_.name + ' [' + $_.kind + ', ' + $_.count + '] ' + $_.cpu + '% ' + [math]::Round($_.mem / 1MB) + 'MB' }) -join ' | ')"
       - name: Check the sensor helper script parses
         shell: pwsh
         run: |
           $e = $null
           $null = [System.Management.Automation.Language.Parser]::ParseFile("$PWD/ps/sensors.ps1", [ref]$null, [ref]$e)
           if ($e.Count) { $e | ForEach-Object { Write-Error $_.Message }; exit 1 }
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: windows-runner-report
           path: |
